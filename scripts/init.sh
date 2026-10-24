@@ -30,23 +30,34 @@ docker compose run --rm --no-deps web python manage.py migrate
 printf '%s\n' "Starting Django and the Tailwind watcher..."
 docker compose up -d tailwind web
 
-printf '%s\n' "Checking for an existing Wagtail admin user..."
-has_superuser="$(docker compose exec -T web python manage.py shell -c \
-  'from django.contrib.auth import get_user_model; print(get_user_model().objects.filter(is_superuser=True).exists())' \
-  | tr -d '\r\n')"
+print_admin_fallback() {
+  printf '%s\n' "Could not check whether an admin user exists." \
+    "Create or verify one with: docker compose exec web python manage.py createsuperuser"
+}
 
-if [[ "$has_superuser" == "True" ]]; then
-  printf '%s\n' "An admin user already exists; skipping creation."
-elif [[ "$has_superuser" == "False" ]]; then
-  read -r -p "Create your first Wagtail admin user now? [Y/n] " create_admin
-  if [[ -z "$create_admin" || "$create_admin" =~ ^[Yy]([Ee][Ss])?$ ]]; then
-    docker compose exec web python manage.py createsuperuser
-  else
-    printf '%s\n' "Skipped. Create one later with: docker compose exec web python manage.py createsuperuser"
-  fi
+printf '%s\n' "Checking for an existing Wagtail admin user..."
+if has_superuser="$(docker compose exec -T web python manage.py shell -c \
+  'from django.contrib.auth import get_user_model; print(get_user_model().objects.filter(is_superuser=True).exists())' \
+  --verbosity 0 \
+  | tr -d '\r\n')"; then
+  case "$has_superuser" in
+    True)
+      printf '%s\n' "An admin user already exists; skipping creation."
+      ;;
+    False)
+      read -r -p "Create your first Wagtail admin user now? [Y/n] " create_admin
+      if [[ -z "$create_admin" || "$create_admin" =~ ^[Yy]([Ee][Ss])?$ ]]; then
+        docker compose exec web python manage.py createsuperuser
+      else
+        print_admin_fallback
+      fi
+      ;;
+    *)
+      print_admin_fallback
+      ;;
+  esac
 else
-  printf '%s\n' "Could not determine whether an admin user exists (got: $has_superuser)." >&2
-  exit 1
+  print_admin_fallback
 fi
 
 printf '\n%s\n' "Site is running at http://localhost:8000/" \
