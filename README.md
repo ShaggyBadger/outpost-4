@@ -39,7 +39,6 @@ allow-rule for it rather than broadly tracking local client files.
 
 ```bash
 ./scripts/init.sh
-docker compose exec web python manage.py createsuperuser
 ```
 
 Open <http://localhost:8000/> for the site and <http://localhost:8000/admin/>
@@ -49,8 +48,9 @@ The initializer creates `.env` from `.env.example` only when `.env` is absent,
 prompts for the site's display name and uses it in this README and
 `WAGTAIL_SITE_NAME`, sets restrictive permissions, generates a Django secret
 key only when blank, starts local Postgres, applies the checked-in migrations,
-and starts Django and Tailwind. It preserves other existing `.env` values and
-secrets.
+and starts Django and Tailwind. It offers to create the first Wagtail admin
+account and skips that step if a superuser already exists. It preserves other
+existing `.env` values and secrets.
 
 ## Useful commands
 

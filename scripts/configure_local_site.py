@@ -22,11 +22,17 @@ def get_env_value(lines: list[str], name: str) -> tuple[int, str] | None:
         if line.startswith(prefix):
             value = line.partition("=")[2].strip()
             if value.startswith("'") and value.endswith("'"):
-                value = value[1:-1].replace("\\'", "'")
+                quoted_value = value[1:-1]
+                value = quoted_value.replace("\\'", "'")
             elif value.startswith('"') and value.endswith('"'):
-                value = json.loads(value)
+                value = json.loads(value.replace("\\$", "$"))
             return index, value
     return None
+
+
+def quote_env_value(value: str) -> str:
+    """Quote a Docker Compose env-file value without expanding its contents."""
+    return json.dumps(value, ensure_ascii=False).replace("$", "\\$")
 
 
 def update_readme_title(site_name: str) -> str:
@@ -74,19 +80,20 @@ def main() -> None:
         raise SystemExit("Enter a printable, single-line site name.")
 
     updated_readme = update_readme_title(site_name)
-    env_site_name = site_name.replace("'", "\\'")
-    lines[site_index] = f"{SITE_NAME_KEY}='{env_site_name}'"
+    lines[site_index] = f"{SITE_NAME_KEY}={quote_env_value(site_name)}"
 
     secret_index, current_secret = secret_entry
     if current_secret and not args.rotate:
+        secret = current_secret
         secret_status = "DJANGO_SECRET_KEY is already set; leaving it unchanged."
     else:
-        lines[secret_index] = f"{SECRET_KEY}={get_random_secret_key()}"
+        secret = get_random_secret_key()
         secret_status = (
             "Rotated the local DJANGO_SECRET_KEY in .env."
             if args.rotate
             else "Generated a local DJANGO_SECRET_KEY in .env."
         )
+    lines[secret_index] = f"{SECRET_KEY}={quote_env_value(secret)}"
 
     ENV_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
     os.chmod(ENV_FILE, 0o600)

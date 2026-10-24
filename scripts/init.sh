@@ -30,6 +30,24 @@ docker compose run --rm --no-deps web python manage.py migrate
 printf '%s\n' "Starting Django and the Tailwind watcher..."
 docker compose up -d tailwind web
 
+printf '%s\n' "Checking for an existing Wagtail admin user..."
+has_superuser="$(docker compose exec -T web python manage.py shell -c \
+  'from django.contrib.auth import get_user_model; print(get_user_model().objects.filter(is_superuser=True).exists())' \
+  | tr -d '\r\n')"
+
+if [[ "$has_superuser" == "True" ]]; then
+  printf '%s\n' "An admin user already exists; skipping creation."
+elif [[ "$has_superuser" == "False" ]]; then
+  read -r -p "Create your first Wagtail admin user now? [Y/n] " create_admin
+  if [[ -z "$create_admin" || "$create_admin" =~ ^[Yy]([Ee][Ss])?$ ]]; then
+    docker compose exec web python manage.py createsuperuser
+  else
+    printf '%s\n' "Skipped. Create one later with: docker compose exec web python manage.py createsuperuser"
+  fi
+else
+  printf '%s\n' "Could not determine whether an admin user exists (got: $has_superuser)." >&2
+  exit 1
+fi
+
 printf '\n%s\n' "Site is running at http://localhost:8000/" \
-  "Wagtail admin: http://localhost:8000/admin/" \
-  "Create your first admin user with: docker compose exec web python manage.py createsuperuser"
+  "Wagtail admin: http://localhost:8000/admin/"

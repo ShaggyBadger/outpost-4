@@ -18,7 +18,7 @@ django-taggit==6.1.0
 django-tasks==0.12.0
 django-treebeard==5.3.1
 djangorestframework==3.18.3
-draftjs_exporter==5.2.0
+draftjs_exporter==7.3.1
 et_xmlfile==2.0.0
 filetype==1.2.0
 idna==3.20
@@ -39,5 +39,5 @@ sqlparse==0.6.0
 telepath==0.3.1
 typing_extensions==4.16.0
 urllib3==2.8.0
-wagtail==7.4.4
+wagtail==8.0.1
 Willow==1.12.0
