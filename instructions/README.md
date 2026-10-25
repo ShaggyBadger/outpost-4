@@ -10,3 +10,8 @@ When creating or editing project guidance, follow
 
 See [`project-template-options.md`](project-template-options.md) for the
 pre-generated-project decision and scaffold-generation tradeoffs.
+
+The active GrannyCoded requirements and phases are in
+[`storefront-plan.md`](storefront-plan.md). Project commerce terms are defined
+in the root [`GLOSSARY.md`](../GLOSSARY.md), and accepted architecture decisions
+are indexed under [`docs/adr/`](../docs/adr/).

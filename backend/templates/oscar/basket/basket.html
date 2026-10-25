@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static currency_filters image_tags purchase_info_tags %}
+
+{% block title %}Your bag · GrannyCoded{% endblock %}
+
+{% block content %}
+<main id="main-content" class="cart-page">
+  <header class="page-intro">
+    <h1>Your bag</h1>
+    <p>Finished pieces are held in your bag while you review them. Stock is confirmed when online checkout opens.</p>
+  </header>
+
+  {% if basket.is_empty %}
+    <p class="empty-catalog">Your bag is empty. <a href="/shop/">Browse the shop.</a></p>
+  {% else %}
+    <div class="cart-layout">
+      <section class="cart-lines" aria-label="Items in your bag">
+        <form method="post" action="{% url 'basket:summary' %}" class="basket-form">
+          {% csrf_token %}
+          {{ formset.management_form }}
+          {% for form in formset %}
+            {% with line=form.instance product=form.instance.product %}
+              <article class="cart-line">
+                {{ form.id }}
+                <a class="cart-line-image" href="{{ product.get_absolute_url }}">
+                  {% with image=product.primary_image %}
+                    {% if image.is_missing and product.attr.static_image_path %}
+                      <img src="{% static product.attr.static_image_path %}" alt="{{ product.attr.image_alt|default:product.get_title }}">
+                    {% elif not image.is_missing %}
+                      {% oscar_thumbnail image.original "240x300" as basket_image %}
+                      <img src="{{ basket_image.url }}" alt="{{ product.attr.image_alt|default:product.get_title }}">
+                    {% endif %}
+                  {% endwith %}
+                </a>
+                <div class="cart-line-copy">
+                  <h2><a href="{{ product.get_absolute_url }}">{{ line.description }}</a></h2>
+                  {% purchase_info_for_line request line as line_info %}
+                  <p class="product-status">{{ line_info.availability.short_message }}</p>
+                  <div class="cart-quantity-form">
+                    <label for="{{ form.quantity.id_for_label }}">Quantity</label>
+                    {{ form.quantity }}
+                  </div>
+                  <button class="remove-link" type="submit" name="{{ form.DELETE.html_name }}" value="on">Remove</button>
+                  {% for error in form.quantity.errors %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+                </div>
+                <p class="cart-line-total">
+                  {% if line.is_tax_known %}{{ line.line_price_incl_tax|currency:line.price_currency }}{% else %}{{ line.line_price_excl_tax|currency:line.price_currency }}{% endif %}
+                </p>
+              </article>
+            {% endwith %}
+          {% endfor %}
+          <button class="secondary-action" type="submit">Update bag</button>
+        </form>
+      </section>
+
+      <aside class="cart-summary" aria-labelledby="cart-summary-title">
+        <h2 id="cart-summary-title">Order summary</h2>
+        <p><span>Subtotal</span><span>{% if basket.is_tax_known %}{{ basket.total_incl_tax|currency:basket.currency }}{% else %}{{ basket.total_excl_tax|currency:basket.currency }}{% endif %}</span></p>
+        <p class="cart-shipping-note">U.S. shipping is included in listed prices. Tax and checkout setup are still being completed.</p>
+        <a class="primary-action checkout-action" href="{% url 'checkout:index' %}">Checkout opening soon</a>
+        <a class="text-link arrow-link" href="/shop/">Continue shopping</a>
+      </aside>
+    </div>
+  {% endif %}
+</main>
+{% endblock %}

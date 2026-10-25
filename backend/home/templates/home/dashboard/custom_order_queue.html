@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Custom orders · GrannyCoded{% endblock %}
+
+{% block content %}
+<main id="main-content" class="ops-page">
+  <header class="page-intro">
+    <p class="eyebrow">Oscar shop tools</p>
+    <h1>Custom-order requests</h1>
+    <p>Review each request, agree on scope and price with the customer, then record the accepted order in Oscar.</p>
+    <a class="primary-action" href="{% url 'create_in_person_custom_order' %}">Record an in-person custom order</a>
+  </header>
+
+  {% if inquiries %}
+    <div class="ops-list">
+      {% for inquiry in inquiries %}
+        <article class="ops-card">
+          <div>
+            <p class="product-status">{{ inquiry.get_status_display }}</p>
+            <h2><a href="{% url 'custom_order_detail' inquiry.pk %}">{{ inquiry.name }}</a></h2>
+            <p><a href="mailto:{{ inquiry.email }}">{{ inquiry.email }}</a></p>
+            <p>{{ inquiry.request_details|truncatewords:28 }}</p>
+            <time datetime="{{ inquiry.created_at|date:'c' }}">{{ inquiry.created_at|date:'F j, Y, g:i a' }}</time>
+          </div>
+          {% if inquiry.order %}
+            <a class="text-link" href="{% url 'dashboard:order-detail' number=inquiry.order.number %}">Oscar order {{ inquiry.order.number }}</a>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty-catalog">No custom-order requests yet.</p>
+  {% endif %}
+</main>
+{% endblock %}

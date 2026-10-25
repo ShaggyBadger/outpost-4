@@ -1,9 +1,9 @@
 <!-- site-name:start -->
-# Outpost 4
+# grannycoded
 <!-- site-name:end -->
 
-A reusable, Docker-first Django and Wagtail template for client websites, using
-PostgreSQL and Tailwind CSS.
+A reusable, Docker-first Django and Wagtail site with Oscar-powered commerce,
+PostgreSQL, and Tailwind CSS.
 
 The included Dockerfile and Compose file are for local development. They use
 Django's development server and a Tailwind watcher; production needs a separate
@@ -11,8 +11,8 @@ server command, static-asset build/collection, and production environment.
 
 ## Project layout
 
-- [`backend/`](backend/README.md) contains the Django/Wagtail project and its
-  Tailwind build files.
+- [`backend/`](backend/README.md) contains the Django/Wagtail/Oscar project and
+  its Tailwind build files.
 - [`frontend/`](frontend/README.md) is reserved for a future separately built
   frontend application.
 - [`scripts/`](scripts/README.md) contains repository setup and data-transfer
@@ -43,6 +43,7 @@ allow-rule for it rather than broadly tracking local client files.
 
 Open <http://localhost:8000/> for the site and <http://localhost:8000/admin/>
 for Wagtail admin.
+The Oscar shop dashboard is at <http://localhost:8000/dashboard/>.
 
 The initializer creates `.env` from `.env.example` only when `.env` is absent,
 prompts for the site's display name and uses it in this README and
@@ -59,6 +60,7 @@ docker compose logs -f                 # Follow service logs
 docker compose exec web python manage.py test
 docker compose exec web python manage.py makemigrations
 docker compose exec web python manage.py migrate
+docker compose exec web python manage.py import_granny_catalog # Drafts only; Leah verifies before publishing
 docker compose exec tailwind npm run build:css
 ./scripts/export_initial_database.sh   # One-time initial-content backup + SCP upload
 docker compose down                    # Stop containers; keep the database volume

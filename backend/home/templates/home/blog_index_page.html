@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block title %}{{ page.title }} · GrannyCoded{% endblock %}
+{% block meta_description %}Stories and notes from GrannyCoded's making table.{% endblock %}
+
+{% block content %}
+<main id="main-content" class="journal-page">
+  <header class="page-intro">
+    <h1>{{ page.title }}</h1>
+    {% if page.intro %}<p>{{ page.intro }}</p>{% endif %}
+  </header>
+  {% if posts %}
+    <div class="journal-list">
+      {% for post in posts %}
+        <article>
+          {% if post.first_published_at %}
+            <time datetime="{{ post.first_published_at|date:'Y-m-d' }}">{{ post.first_published_at|date:'F j, Y' }}</time>
+          {% endif %}
+          <h2><a href="{% pageurl post %}">{{ post.title }}</a></h2>
+          {% if post.excerpt %}<p>{{ post.excerpt }}</p>{% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty-catalog">No journal entries yet. New notes from the making table will appear here.</p>
+  {% endif %}
+</main>
+{% endblock %}

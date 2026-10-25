@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
+from oscar.defaults import *  # noqa: F403
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOG_DIR = Path(os.environ.get("DJANGO_LOG_DIR", BASE_DIR / "logs"))
@@ -54,6 +55,20 @@ ALLOWED_HOSTS = environment_list(
     "DJANGO_ALLOWED_HOSTS", default="localhost,127.0.0.1"
 )
 CSRF_TRUSTED_ORIGINS = environment_list("DJANGO_CSRF_TRUSTED_ORIGINS")
+PUBLIC_SITE_URL = os.environ.get("PUBLIC_SITE_URL", "http://localhost:8000").rstrip("/")
+CUSTOM_ORDER_NOTIFICATION_EMAIL = os.environ.get(
+    "CUSTOM_ORDER_NOTIFICATION_EMAIL", ""
+).strip()
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "").strip()
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "").strip()
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = environment_bool("EMAIL_USE_TLS", default=True)
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
+).strip()
+if os.environ.get("DEFAULT_FROM_EMAIL"):
+    DEFAULT_FROM_EMAIL = os.environ["DEFAULT_FROM_EMAIL"].strip()
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -63,6 +78,50 @@ if not DEBUG:
 
 INSTALLED_APPS = [
     "home",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "django.contrib.flatpages",
+    "django.contrib.humanize",
+    "oscar.config.Shop",
+    "oscar.apps.analytics.apps.AnalyticsConfig",
+    "oscar.apps.checkout.apps.CheckoutConfig",
+    "oscar.apps.address.apps.AddressConfig",
+    "oscar.apps.shipping.apps.ShippingConfig",
+    "oscar.apps.catalogue.apps.CatalogueConfig",
+    "oscar.apps.catalogue.reviews.apps.CatalogueReviewsConfig",
+    "oscar.apps.communication.apps.CommunicationConfig",
+    "oscar.apps.partner.apps.PartnerConfig",
+    "oscar.apps.basket.apps.BasketConfig",
+    "oscar.apps.payment.apps.PaymentConfig",
+    "oscar.apps.offer.apps.OfferConfig",
+    "oscar.apps.order.apps.OrderConfig",
+    "oscar.apps.customer.apps.CustomerConfig",
+    "oscar.apps.search.apps.SearchConfig",
+    "oscar.apps.voucher.apps.VoucherConfig",
+    "oscar.apps.wishlists.apps.WishlistsConfig",
+    "oscar.apps.dashboard.apps.DashboardConfig",
+    "oscar.apps.dashboard.reports.apps.ReportsDashboardConfig",
+    "oscar.apps.dashboard.users.apps.UsersDashboardConfig",
+    "oscar.apps.dashboard.orders.apps.OrdersDashboardConfig",
+    "oscar.apps.dashboard.catalogue.apps.CatalogueDashboardConfig",
+    "oscar.apps.dashboard.offers.apps.OffersDashboardConfig",
+    "oscar.apps.dashboard.partners.apps.PartnersDashboardConfig",
+    "oscar.apps.dashboard.pages.apps.PagesDashboardConfig",
+    "oscar.apps.dashboard.ranges.apps.RangesDashboardConfig",
+    "oscar.apps.dashboard.reviews.apps.ReviewsDashboardConfig",
+    "oscar.apps.dashboard.vouchers.apps.VouchersDashboardConfig",
+    "oscar.apps.dashboard.communications.apps.CommunicationsDashboardConfig",
+    "oscar.apps.dashboard.shipping.apps.ShippingDashboardConfig",
+    "widget_tweaks",
+    "haystack",
+    "treebeard",
+    "easy_thumbnails",
+    "django_tables2",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.embeds",
@@ -77,14 +136,71 @@ INSTALLED_APPS = [
     "modelcluster",
     "taggit",
     "jazzmin",
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
     "django.contrib.postgres",
-    "django.contrib.staticfiles",
 ]
+
+SITE_ID = 1
+AUTHENTICATION_BACKENDS = (
+    "oscar.apps.customer.auth_backends.EmailBackend",
+    "django.contrib.auth.backends.ModelBackend",
+)
+OSCAR_SHOP_NAME = "GrannyCoded"
+OSCAR_SHOP_TAGLINE = "Found textiles, made into something new."
+OSCAR_DEFAULT_CURRENCY = "USD"
+OSCAR_HOMEPAGE = "/"
+OSCAR_ALLOW_ANON_CHECKOUT = True
+OSCAR_THUMBNAILER = "oscar.core.thumbnails.EasyThumbnails"
+
+
+def staff_dashboard_access(user, url_name, url_args, url_kwargs):
+    """Restrict GrannyCoded's custom shop tools to staff users."""
+    return user.is_staff
+
+
+OSCAR_DASHBOARD_NAVIGATION += [
+    {
+        "label": "GrannyCoded",
+        "icon": "fas fa-store",
+        "access_fn": staff_dashboard_access,
+        "children": [
+            {
+                "label": "Custom orders",
+                "url_name": "custom_order_queue",
+                "access_fn": staff_dashboard_access,
+            },
+            {
+                "label": "Record in-person sale",
+                "url_name": "record_manual_sale",
+                "access_fn": staff_dashboard_access,
+            },
+        ],
+    },
+]
+OSCAR_INITIAL_ORDER_STATUS = "Pending"
+OSCAR_INITIAL_LINE_STATUS = "Pending"
+OSCAR_ORDER_STATUS_PIPELINE = {
+    "Pending": ("Being processed", "Cancelled"),
+    "Being processed": ("Complete", "Cancelled"),
+    "Complete": (),
+    "Cancelled": (),
+}
+OSCAR_LINE_STATUS_PIPELINE = {
+    "Pending": ("Being processed", "Cancelled"),
+    "Being processed": ("Shipped", "Collected", "Complete", "Cancelled"),
+    "Shipped": ("Returned", "Complete"),
+    "Collected": ("Returned", "Complete"),
+    "Complete": ("Returned",),
+    "Returned": (),
+    "Cancelled": (),
+}
+OSCAR_ORDER_STATUS_CASCADE = {
+    "Being processed": "Being processed",
+    "Complete": "Complete",
+    "Cancelled": "Cancelled",
+}
+HAYSTACK_CONNECTIONS = {
+    "default": {"ENGINE": "haystack.backends.simple_backend.SimpleEngine"}
+}
 
 USE_LINODE_OBJECT_STORAGE = environment_bool(
     "USE_LINODE_OBJECT_STORAGE", default=False
@@ -99,8 +215,10 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "oscar.apps.basket.middleware.BasketMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.contrib.flatpages.middleware.FlatpageFallbackMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
 
@@ -117,6 +235,11 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "wagtail.contrib.settings.context_processors.settings",
+                "home.context_processors.editorial_navigation",
+                "oscar.apps.search.context_processors.search_form",
+                "oscar.apps.checkout.context_processors.checkout",
+                "oscar.apps.communication.notifications.context_processors.notifications",
+                "oscar.core.context_processors.metadata",
             ],
         },
     },

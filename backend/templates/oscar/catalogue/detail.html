@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static currency_filters image_tags purchase_info_tags basket_tags %}
+
+{% block title %}{{ product.get_title }} · GrannyCoded{% endblock %}
+{% block meta_description %}{{ product.get_meta_description|default:product.get_title }}{% endblock %}
+
+{% block content %}
+{% purchase_info_for_product request product as product_info %}
+<main id="main-content" class="product-page">
+  <div class="product-main-image">
+    {% with image=product.primary_image %}
+      {% if image.is_missing %}
+        {% if product.attr.static_image_path %}
+          <img src="{% static product.attr.static_image_path %}" alt="{{ product.attr.image_alt|default:product.get_title }}">
+        {% else %}
+          <span class="product-image-placeholder" aria-hidden="true"></span>
+        {% endif %}
+      {% else %}
+        {% oscar_thumbnail image.original "1100x1300" as product_image %}
+        <img src="{{ product_image.url }}" alt="{{ product.attr.image_alt|default:product.get_title }}">
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <article class="product-information">
+    <p class="product-status">
+      {% if not product_info.availability.is_available_to_buy %}Sold{% elif product.attr.one_of_a_kind %}One of a kind · available{% else %}{{ product_info.availability.message }}{% endif %}
+    </p>
+    <h1>{{ product.get_title }}</h1>
+    {% if product_info.price.exists %}
+      <p class="product-price">{% if product_info.price.is_tax_known %}{{ product_info.price.incl_tax|currency:product_info.price.currency }}{% else %}{{ product_info.price.excl_tax|currency:product_info.price.currency }}{% endif %}</p>
+    {% endif %}
+
+    {% if product.description %}<div class="product-description">{{ product.description|linebreaks }}</div>{% endif %}
+
+    {% if product.is_parent %}
+      <section class="product-variants" aria-labelledby="variant-heading">
+        <h2 id="variant-heading">Choose a version</h2>
+        <ul>
+          {% for child in product.get_public_children %}
+            {% purchase_info_for_product request child as child_info %}
+            <li>
+              <a href="{{ child.get_absolute_url }}">{{ child.get_title }}</a>
+              <span>{% if child_info.availability.is_available_to_buy %}{{ child_info.availability.short_message }}{% else %}Sold{% endif %}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% elif product_info.availability.is_available_to_buy %}
+      {% basket_form request product as basket_form %}
+      <form class="add-to-bag" method="post" action="{% url 'basket:add' pk=product.pk %}">
+        {% csrf_token %}
+        {% for field in basket_form %}
+          <div class="form-field">
+            {{ field.label_tag }}
+            {{ field }}
+            {% for error in field.errors %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+          </div>
+        {% endfor %}
+        <input type="hidden" name="next" value="{{ product.get_absolute_url }}">
+        <button class="primary-action" type="submit">Add to bag</button>
+      </form>
+      <p class="checkout-note">U.S. shipping is included in the listed price. Online payment will open after checkout is ready.</p>
+    {% else %}
+      <p class="product-status">This piece has sold.</p>
+      <p>Interested in something similar? Leah can review a custom request and provide a quote.</p>
+      <a class="text-link arrow-link" href="/custom-order/">Ask about custom work</a>
+    {% endif %}
+
+    <a class="text-link arrow-link back-to-shop" href="/shop/">Back to the shop</a>
+  </article>
+</main>
+{% endblock %}

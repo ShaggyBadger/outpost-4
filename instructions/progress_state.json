@@ -1,9 +1,60 @@
 {
-  "initiative": null,
-  "status": "idle",
-  "tasks": [],
-  "touched_files": [],
-  "validation": [],
-  "blockers": [],
-  "next_actions": []
+  "initiative": "Build the GrannyCoded Oscar/Wagtail direct-sales storefront",
+  "status": "in_progress",
+  "tasks": [
+    "Build Wagtail editorial pages and Oscar catalog, inventory, offline-sale, and custom-order workflows",
+    "Have Leah verify and publish appropriate Oscar product drafts",
+    "Integrate Stripe-hosted Checkout, invoices, and webhooks after the storefront and launch configuration are ready",
+    "Gate live payments on verified product data, shipping economics, tax setup, policies, and email configuration"
+  ],
+  "touched_files": [
+    "PRODUCT.md",
+    "backend/home/catalog_snapshot.json",
+    "instructions/storefront-plan.md",
+    "instructions/README.md",
+    "instructions/progress_state.json",
+    "GLOSSARY.md",
+    "docs/adr/0001-oscar-for-commerce-wagtail-for-content.md",
+    "backend/requirements.txt",
+    "backend/config/settings.py",
+    "backend/config/urls.py",
+    "backend/home/models.py",
+    "backend/home/forms.py",
+    "backend/home/views.py",
+    "backend/home/ops_views.py",
+    "backend/home/catalogue_urls.py",
+    "backend/home/checkout_urls.py",
+    "backend/home/context_processors.py",
+    "backend/home/tests.py",
+    "backend/home/management/commands/import_granny_catalog.py",
+    "backend/home/services/oscar_orders.py",
+    "backend/home/migrations/0005_customorderinquiry_and_more.py",
+    "backend/home/migrations/0006_clear_unverified_draft_stock.py",
+    "backend/home/migrations/0007_seed_order_event_types.py",
+    "backend/home/migrations/0008_customorderinquiry_quoted_shipping.py",
+    "backend/templates/base.html",
+    "backend/templates/oscar/",
+    "backend/static-src/css/input.css",
+    ".env.example",
+    "README.md",
+    "backend/README.md"
+  ],
+  "validation": [
+    "Oscar 4.2 passes Docker checks/tests with Django 6.0.9 and Wagtail 8.0.1",
+    "Migrated 12 legacy Wagtail listings into unpublished Oscar drafts with zero stock and preserved image references",
+    "Oscar guest basket, catalogue variants, custom inquiries, quote conversion, and in-person sale workflows are tested",
+    "Docker Django checks, 17 tests, migration consistency, and Tailwind production CSS build pass",
+    "Local home, shop, basket, and custom-order routes return HTTP 200; unauthenticated dashboard access redirects to login"
+  ],
+  "blockers": [
+    "Leah must verify current product data, photos, and stock from the 12-listing snapshot",
+    "Confirm shipping economics, tax configuration, standard-item return policy, and custom-order return policy before live payments",
+    "Obtain real About copy, blog posts, and social URLs before publishing those sections",
+    "Configure custom-order notification email delivery if Leah wants email alerts",
+    "Stripe-phase checkout must reject unpublished products still in an existing basket"
+  ],
+  "next_actions": [
+    "Leah should review the 12 draft products and enter verified stock, photos, and prices before publishing",
+    "Keep payments disabled until Stripe integration and all launch gates are complete"
+  ]
 }

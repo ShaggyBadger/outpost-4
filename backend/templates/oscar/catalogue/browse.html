@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Shop · GrannyCoded{% endblock %}
+{% block meta_description %}Finished, one-of-a-kind garments and handmade pieces from GrannyCoded.{% endblock %}
+
+{% block content %}
+<main id="main-content" class="shop-page">
+  <header class="page-intro">
+    <p class="eyebrow">Found textiles, made into something new</p>
+    <h1>{{ summary }}</h1>
+    {% if shop_intro %}<p>{{ shop_intro }}</p>{% endif %}
+    <p>U.S. shipping is included in the listed price.</p>
+  </header>
+
+  <nav class="category-filter" aria-label="Shop categories">
+    <a href="{% url 'catalogue:index' %}">All pieces</a>
+    {% for category in shop_categories %}
+      <a href="{{ category.get_absolute_url }}">{{ category.name }}</a>
+    {% endfor %}
+  </nav>
+
+  <form class="catalogue-search" method="get" role="search">
+    <label for="catalogue-query">Search the shop</label>
+    <input id="catalogue-query" name="q" type="search" value="{{ search_query }}">
+    <button class="secondary-action" type="submit">Search</button>
+  </form>
+
+  {% if products %}
+    <div class="shop-grid">
+      {% for product in products %}
+        {% include "oscar/catalogue/partials/product_card.html" with product=product %}
+      {% endfor %}
+    </div>
+    {% if is_paginated %}
+      <nav class="shop-pagination" aria-label="Shop pages">
+        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" rel="prev">Previous</a>{% endif %}
+        <span>Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" rel="next">Next</a>{% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    <p class="empty-catalog">The first pieces are being prepared for the shop. Check back soon.</p>
+  {% endif %}
+
+  <aside class="custom-order-prompt">
+    <h2>Looking for something made just for you?</h2>
+    <p>Send Leah a request. She'll review the details and provide a quote before any work begins.</p>
+    <a class="text-link arrow-link" href="/custom-order/">Ask about custom work</a>
+  </aside>
+</main>
+{% endblock %}

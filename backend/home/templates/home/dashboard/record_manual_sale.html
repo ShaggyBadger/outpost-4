@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Record in-person sale · GrannyCoded{% endblock %}
+
+{% block content %}
+<main id="main-content" class="ops-page">
+  <header class="page-intro">
+    <p class="eyebrow">Oscar shop tools</p>
+    <h1>Record an in-person sale</h1>
+    <p>Record items sold at a fair so Oscar updates available stock. Hide listings before the event; afterward relist unsold pieces and republish sold one-offs with zero stock so their pages stay visible as sold.</p>
+  </header>
+
+  <form class="ops-form" method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="field-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}
+      <div class="form-field{% if field.errors %} has-errors{% endif %}">
+        {{ field.label_tag }}
+        {{ field }}
+        {% for error in field.errors %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+
+    <section class="sale-lines" aria-labelledby="sale-lines-title">
+      <h2 id="sale-lines-title">Items sold</h2>
+      {% if line_formset.non_form_errors %}
+        <div class="field-error" role="alert">{{ line_formset.non_form_errors }}</div>
+      {% endif %}
+      {{ line_formset.management_form }}
+      {% for line_form in line_formset %}
+        <div class="sale-line">
+          {% for field in line_form %}
+            <div class="form-field">
+              {{ field.label_tag }}
+              {{ field }}
+              {% for error in field.errors %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </section>
+
+    <button class="primary-action" type="submit">Record sale and update Oscar stock</button>
+  </form>
+</main>
+{% endblock %}

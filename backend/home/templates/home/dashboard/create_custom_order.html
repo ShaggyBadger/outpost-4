@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Record custom order · GrannyCoded{% endblock %}
+
+{% block content %}
+<main id="main-content" class="ops-page">
+  <header class="page-intro">
+    <p class="eyebrow">Oscar shop tools</p>
+    <h1>Record an accepted custom order</h1>
+    <p>Use this after Leah and the customer have agreed on the request, full price, and shipping. The order will be saved as awaiting payment.</p>
+  </header>
+
+  <form class="ops-form" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="field-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}
+      <div class="form-field{% if field.errors %} has-errors{% endif %}">
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+        {% for error in field.errors %}<p class="field-error" role="alert">{{ error }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+    <button class="primary-action" type="submit">Create Oscar order</button>
+  </form>
+  <a class="text-link arrow-link" href="{% url 'custom_order_queue' %}">Back to custom orders</a>
+</main>
+{% endblock %}

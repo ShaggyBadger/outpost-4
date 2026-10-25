@@ -1,0 +1,28 @@
+{% load static currency_filters image_tags purchase_info_tags %}
+{% purchase_info_for_product request product as product_info %}
+<article class="shop-card">
+  <a class="product-image-link" href="{{ product.get_absolute_url }}" aria-label="View {{ product.get_title }}">
+    {% with image=product.primary_image %}
+      {% if image.is_missing %}
+        {% if product.attr.static_image_path %}
+          <img src="{% static product.attr.static_image_path %}" alt="{{ product.attr.image_alt|default:product.get_title }}">
+        {% else %}
+          <span class="product-image-placeholder" aria-hidden="true"></span>
+        {% endif %}
+      {% else %}
+        {% oscar_thumbnail image.original "720x900" as card_image %}
+        <img src="{{ card_image.url }}" alt="{{ product.attr.image_alt|default:product.get_title }}">
+      {% endif %}
+    {% endwith %}
+    <span class="availability-stamp">
+      {% if not product_info.availability.is_available_to_buy %}Sold{% elif product.attr.one_of_a_kind %}One of a kind · available{% else %}{{ product_info.availability.short_message }}{% endif %}
+    </span>
+  </a>
+  <h2><a href="{{ product.get_absolute_url }}">{{ product.get_title }}</a></h2>
+  <div class="shop-card-meta">
+    {% if product_info.price.exists %}
+      <p>{% if product_info.price.is_tax_known %}{{ product_info.price.incl_tax|currency:product_info.price.currency }}{% else %}{{ product_info.price.excl_tax|currency:product_info.price.currency }}{% endif %}</p>
+    {% endif %}
+    {% if product.attr.one_of_a_kind %}<p>One of a kind</p>{% endif %}
+  </div>
+</article>
