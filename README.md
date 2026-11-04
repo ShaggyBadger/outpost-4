@@ -72,6 +72,38 @@ That command is destructive; do not use it when you need to keep local content.
 
 ## Database choices
 
+### Where the database lives
+
+The `db` service bind-mounts `./.pgdata`, so the data directory sits inside the
+project instead of a Docker named volume. It is gitignored and disposable.
+
+```
+.pgdata/          live database (owned by uid 70, mode 0700 — not readable by your user)
+db/dumps/         pg_dump archives, also gitignored
+db/README.md      the full explanation
+```
+
+Postgres owns `.pgdata` and `ls` on it will say permission denied. That is
+expected. Inspect it through the container:
+
+```sh
+docker compose exec db ls /var/lib/postgresql/data
+```
+
+Dump and restore without remembering flags:
+
+```sh
+./scripts/db-dump.sh before-a-change
+./scripts/db-restore.sh db/dumps/before-a-change.dump
+```
+
+Both read the database name and user from inside the container, so they cannot
+drift from `.env`. Do not add a `user:` to the `db` service — its entrypoint must
+start as root to take ownership of the mounted directory.
+
+A database dump is not a whole backup: uploaded media lives in object storage.
+Back up the dump and the bucket together.
+
 ### Default: local Postgres in Docker
 
 Django connects to the `db` Compose service using `DATABASE_HOST=db`. The named

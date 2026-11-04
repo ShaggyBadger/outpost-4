@@ -15,6 +15,8 @@ if [[ ! -f .env ]]; then
 fi
 chmod 600 .env
 
+mkdir -p db/dumps
+
 printf '%s\n' "Building the Django image..."
 docker compose build web
 

@@ -21,8 +21,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-website}
       POSTGRES_USER: ${POSTGRES_USER:-website}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run ./scripts/init.sh first}
+    # The database lives inside the project so it can be inspected and
+    # copied. It is gitignored. Do not add a `user:` to this service: the
+    # entrypoint needs to start as root to chown the directory to postgres.
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./.pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -38,5 +41,4 @@ services:
       - backend_node_modules:/app/backend/node_modules
 
 volumes:
-  postgres_data:
   backend_node_modules:
